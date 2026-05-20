@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actas — Comunidades de Propietarios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --border: #E0DBD0;
+    --border2: #C8C2B4;
+    --text: #1A1814;
+    --text2: #6B6558;
+    --text3: #A09890;
+    --accent: #2B4A3F;
+    --accent-light: #E8F0EE;
+    --accent-text: #1A3028;
+    --warn: #7A4A10;
+    --warn-bg: #FDF3E3;
+    --danger: #8B2020;
+    --danger-bg: #FDF0F0;
+    --success: #1A5C35;
+    --success-bg: #EAF4EE;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--accent);
+    padding: 2rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .sidebar-logo i { font-size: 22px; color: rgba(255,255,255,0.9); }
+  .sidebar-logo span { font-family: 'Lora', serif; font-size: 15px; color: #fff; font-weight: 500; line-height: 1.3; }
+
+  .sidebar-steps { flex: 1; }
+  .sidebar-step {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: background .15s;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+  }
+  .sidebar-step:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+  .sidebar-step.active { background: rgba(255,255,255,0.15); color: #fff; }
+  .sidebar-step.done { color: rgba(255,255,255,0.75); }
+  .sidebar-step.done .step-num { background: rgba(255,255,255,0.2); }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; flex-shrink: 0;
+  }
+  .sidebar-step.active .step-num { background: #fff; color: var(--accent); }
+  .sidebar-step.done .step-num::before { content: '✓'; }
+  .sidebar-step.done .step-num-inner { display: none; }
+
+  .sidebar-footer {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+  }
+
+  .main {
+    margin-left: 240px;
+    flex: 1;
+    padding: 2.5rem 3rem;
+    max-width: 860px;
+  }
+
+  .page-header { margin-bottom: 2rem; }
+  .page-header h2 { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .page-header p { color: var(--text2); font-size: 13px; }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text2);
+    margin-bottom: 1rem; padding-bottom: .6rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card-title i { font-size: 15px; }
+
+  /* FIELDS */
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--text2); margin-bottom: 5px;
+  }
+  .field input, .field textarea, .field select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border .15s, box-shadow .15s;
+    appearance: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(43,74,63,0.1);
+    background: #fff;
+  }
+  .field textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6558' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none;
+  }
+  .btn-primary:hover { background: #213d34; }
+  .btn-secondary {
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-secondary:hover { background: var(--surface2); }
+  .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid #F5C0C0; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
+
+  /* NAV */
+  .nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 2rem; padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ASISTENTES */
+  .asistente-row {
+    display: grid; grid-template-columns: 2fr 1fr 2fr 32px;
+    gap: 8px; align-items: center; margin-bottom: 8px;
+  }
+  .asistente-row input { font-size: 13px; }
+  .btn-icon {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text3); cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .btn-icon:hover { background: var(--danger-bg); color: var(--danger); border-color: #F5C0C0; }
+  .col-label {
+    font-size: 11px; color: var(--text3); font-weight: 500;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding-bottom: 4px;
+  }
+  .asistente-headers {
+    display: grid; grid-template-columns: 2fr 1fr 2fr 32px;
+    gap: 8px; margin-bottom: 4px;
+  }
+
+  /* PUNTOS */
+  .punto-row {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+  }
+  .punto-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-light); color: var(--accent-text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; flex-shrink: 0;
+  }
+
+  /* PUNTO CONTENT */
+  .punto-content-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .punto-content-header {
+    padding: .9rem 1.25rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .punto-content-header .num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; flex-shrink: 0;
+  }
+  .punto-content-header .titulo { font-size: 14px; font-weight: 500; }
+  .punto-content-body { padding: 1.25rem; }
+  .checkbox-group { display: flex; gap: 1.5rem; margin-top: .5rem; }
+  .checkbox-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text2); cursor: pointer; }
+  .checkbox-item input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); }
+  .badge-success { background: var(--success-bg); color: var(--success); }
+
+  /* PREVIEW */
+  .preview-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    max-height: 500px;
+    overflow-y: auto;
+    color: var(--text);
+  }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+  /* MOBILE */
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 1.5rem 1rem; }
+    .row, .row3 { grid-template-columns: 1fr; }
+    .asistente-row { grid-template-columns: 1fr 1fr; }
+    .asistente-row input:nth-child(3) { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="ti ti-building-community"></i>
+      <span>Actas<br>Comunidades</span>
+    </div>
+    <nav class="sidebar-steps" id="sidebar-steps">
+      <div class="sidebar-step active" onclick="goTo(0)" id="s0">
+        <div class="step-num"><span class="step-num-inner">1</span></div>
+        <span>Comunidad</span>
+      </div>
+      <div class="sidebar-step" onclick="goTo(1)" id="s1">
+        <div class="step-num"><span class="step-num-inner">2</span></div>
+        <span>Asistentes</span>
+      </div>
+      <div class="sidebar-step" onclick="goTo(2)" id="s2">
+        <div class="step-num"><span class="step-num-inner">3</span></div>
+        <span>Orden del día</span>
+      </div>
+      <div class="sidebar-step" onclick="goTo(3)" id="s3">
+        <div class="step-num"><span class="step-num-inner">4</span></div>
+        <span>Puntos tratados</span>
+      </div>
+      <div class="sidebar-step" onclick="goTo(4)" id="s4">
+        <div class="step-num"><span class="step-num-inner">5</span></div>
+        <span>Vista previa</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">Administración de Fincas · Melilla</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PASO 1 -->
+    <div class="section active" id="sec0">
+      <div class="page-header">
+        <h2>Datos de la comunidad</h2>
+        <p>Información general de la junta y la finca</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-building"></i> Identificación</div>
+        <div class="field"><label>Nombre de la comunidad</label>
+          <input id="nombre_com" placeholder="Ej: Edificios Álvaro de Bazán, Bloque 5" />
+        </div>
+        <div class="row">
+          <div class="field"><label>CIF</label><input id="cif" placeholder="H-12345678" /></div>
+          <div class="field"><label>Tipo de junta</label>
+            <select id="tipo_junta">
+              <option>Junta General Ordinaria</option>
+              <option>Junta General Extraordinaria</option>
+              <option>Junta Extraordinaria</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-calendar-event"></i> Fecha y lugar</div>
+        <div class="row">
+          <div class="field"><label>Fecha de la reunión</label><input type="date" id="fecha" /></div>
+          <div class="field"><label>Lugar de celebración</label><input id="lugar" placeholder="portal del edificio" /></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>Hora 1ª convocatoria</label><input type="time" id="hora1" /></div>
+          <div class="field"><label>Hora 2ª convocatoria</label><input type="time" id="hora2" /></div>
+          <div class="field"><label>Hora de finalización</label><input type="time" id="hora_fin" /></div>
+        </div>
+        <div class="field"><label>Convocatoria que se celebra</label>
+          <select id="convocatoria">
+            <option value="primera">Primera convocatoria</option>
+            <option value="segunda" selected>Segunda convocatoria</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-user-check"></i> Mesa de la junta</div>
+        <div class="row">
+          <div class="field"><label>Secretaria-Administradora</label>
+            <input id="secretaria" placeholder="D.ª Nombre Apellido Apellido" />
+          </div>
+          <div class="field"><label>Presidente/a</label>
+            <input id="presidente" placeholder="D. / D.ª Nombre Apellido" />
+          </div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div></div>
+        <button class="btn btn-primary" onclick="goTo(1)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="section" id="sec1">
+      <div class="page-header">
+        <h2>Asistentes</h2>
+        <p>Propietarios presentes o representados en la junta</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <i class="ti ti-users"></i> Lista de asistentes
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addAsistente()"><i class="ti ti-plus"></i> Añadir</button>
+        </div>
+        <div class="asistente-headers">
+          <div class="col-label">Nombre completo</div>
+          <div class="col-label">Vivienda</div>
+          <div class="col-label">Representado por (opcional)</div>
+          <div></div>
+        </div>
+        <div id="asistentes-list"></div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-secondary" onclick="goTo(0)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(2)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="section" id="sec2">
+      <div class="page-header">
+        <h2>Orden del día</h2>
+        <p>Define los puntos a tratar. En el siguiente paso añadirás el contenido de cada uno.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <i class="ti ti-list-numbers"></i> Puntos
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addPunto()"><i class="ti ti-plus"></i> Añadir punto</button>
+        </div>
+        <div id="puntos-list"></div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-secondary" onclick="goTo(1)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="section" id="sec3">
+      <div class="page-header">
+        <h2>Puntos tratados</h2>
+        <p>Redacta el debate y los acuerdos de cada punto</p>
+      </div>
+      <div id="puntos-contenido"></div>
+      <div class="nav">
+        <button class="btn btn-secondary" onclick="goTo(2)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Vista previa <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="section" id="sec4">
+      <div class="page-header">
+        <h2>Vista previa y exportar</h2>
+        <p>Revisa el acta antes de copiarla o descargarla</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-eye"></i> Borrador del acta</div>
+        <div class="preview-box" id="preview-text"></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:.5rem">
+        <button class="btn btn-primary btn-full" onclick="copiarTexto()"><i class="ti ti-copy"></i> Copiar texto</button>
+        <button class="btn btn-secondary btn-full" onclick="descargarTxt()"><i class="ti ti-download"></i> Descargar .txt</button>
+      </div>
+      <div id="copy-ok" style="display:none;text-align:center;margin-top:.75rem">
+        <span class="badge badge-success"><i class="ti ti-check"></i> Copiado al portapapeles</span>
+      </div>
+      <div class="nav">
+        <button class="btn btn-secondary" onclick="goTo(3)"><i class="ti ti-arrow-left"></i> Volver a editar</button>
+        <button class="btn btn-secondary" onclick="nuevaActa()"><i class="ti ti-file-plus"></i> Nueva acta</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+let currentStep = 0;
+let asistentes = [{nombre:'',vivienda:'',representadoPor:''}];
+let puntos = ['Aprobación acta anterior','Estado de cuentas','Ruegos y preguntas'];
+let puntosContenido = {};
+
+function goTo(n) {
+  if(n===3) renderPuntosContenido();
+  if(n===4) renderPreview();
+  document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===n));
+  document.querySelectorAll('.sidebar-step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i===n) s.classList.add('active');
+    else if(i<n) s.classList.add('done');
+  });
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function addAsistente() {
+  asistentes.push({nombre:'',vivienda:'',representadoPor:''});
+  renderAsistentes();
+}
+function removeAsistente(i) {
+  if(asistentes.length===1) return;
+  asistentes.splice(i,1);
+  renderAsistentes();
+}
+function renderAsistentes() {
+  document.getElementById('asistentes-list').innerHTML = asistentes.map((a,i)=>`
+    <div class="asistente-row">
+      <input placeholder="Nombre completo" value="${esc(a.nombre)}" oninput="asistentes[${i}].nombre=this.value" />
+      <input placeholder="Ej: 1ºA, Bajo Dcha" value="${esc(a.vivienda)}" oninput="asistentes[${i}].vivienda=this.value" />
+      <input placeholder="Nombre del representante" value="${esc(a.representadoPor)}" oninput="asistentes[${i}].representadoPor=this.value" />
+      <button class="btn-icon" onclick="removeAsistente(${i})" title="Eliminar">×</button>
+    </div>`).join('');
+}
+
+function addPunto() {
+  puntos.push('Nuevo punto');
+  renderPuntos();
+}
+function removePunto(i) {
+  if(puntos.length===1) return;
+  puntos.splice(i,1);
+  delete puntosContenido[i];
+  renderPuntos();
+}
+function renderPuntos() {
+  document.getElementById('puntos-list').innerHTML = puntos.map((p,i)=>`
+    <div class="punto-row">
+      <div class="punto-num">${i+1}</div>
+      <input style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);font-family:inherit;font-size:14px;color:var(--text)"
+        value="${esc(p)}" oninput="puntos[${i}]=this.value" />
+      <button class="btn-icon" onclick="removePunto(${i})" title="Eliminar">×</button>
+    </div>`).join('');
+}
+
+function renderPuntosContenido() {
+  document.getElementById('puntos-contenido').innerHTML = puntos.map((titulo,i)=>{
+    const c = puntosContenido[i]||{};
+    return `<div class="punto-content-block">
+      <div class="punto-content-header">
+        <div class="num">${i+1}</div>
+        <div class="titulo">${esc(titulo)}</div>
+        ${c.pendiente?'<span class="badge badge-warn" style="margin-left:auto">Pendiente</span>':c.acuerdo?'<span class="badge badge-success" style="margin-left:auto">Con acuerdo</span>':''}
+      </div>
+      <div class="punto-content-body">
+        <div class="field"><label>Desarrollo y debate</label>
+          <textarea placeholder="Describe lo tratado: intervenciones, información presentada, debate..." oninput="pc(${i},'debate',this.value)">${esc(c.debate||'')}</textarea>
+        </div>
+        <div class="field"><label>Acuerdo adoptado</label>
+          <textarea style="min-height:70px" placeholder="Redacta el acuerdo, o escribe 'Sin acuerdo formal'..." oninput="pc(${i},'acuerdo',this.value)">${esc(c.acuerdo||'')}</textarea>
+        </div>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" ${c.unanimidad?'checked':''} onchange="pc(${i},'unanimidad',this.checked)" />
+            Aprobado por unanimidad
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" ${c.pendiente?'checked':''} onchange="pc(${i},'pendiente',this.checked);renderPuntosContenido()" />
+            Pendiente de completar
+          </label>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pc(i,k,v) {
+  if(!puntosContenido[i]) puntosContenido[i]={};
+  puntosContenido[i][k]=v;
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function fmtFecha(s){
+  if(!s) return '___';
+  const [y,m,d]=s.split('-');
+  const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(d)} de ${M[parseInt(m)-1]} de ${y}`;
+}
+function fmtH(s){ return s||'__:__'; }
+
+function renderPreview() {
+  const nom = document.getElementById('nombre_com').value||'[COMUNIDAD]';
+  const cif = document.getElementById('cif').value||'[CIF]';
+  const tipo = document.getElementById('tipo_junta').value;
+  const fecha = fmtFecha(document.getElementById('fecha').value);
+  const lugar = document.getElementById('lugar').value||'el portal del edificio';
+  const h1 = fmtH(document.getElementById('hora1').value);
+  const h2 = fmtH(document.getElementById('hora2').value);
+  const hfin = fmtH(document.getElementById('hora_fin').value);
+  const conv = document.getElementById('convocatoria').value;
+  const sec = document.getElementById('secretaria').value||'[SECRETARIA-ADMINISTRADORA]';
+  const pres = document.getElementById('presidente').value||'[PRESIDENTE/A]';
+
+  const asistList = asistentes.filter(a=>a.nombre).map((a,i)=>{
+    let s=`  ${String(i+1).padStart(2,'0')}. ${a.nombre}`;
+    if(a.vivienda) s+=` — ${a.vivienda}`;
+    if(a.representadoPor) s+=` (repr. por ${a.representadoPor})`;
+    return s;
+  }).join('\n');
+
+  const odiaList = puntos.map((p,i)=>`  ${String(i+1).padStart(2,'0')}. ${p}`).join('\n');
+
+  const convTxt = conv==='segunda'
+    ? `siendo las ${h1} horas en primera convocatoria y las ${h2} horas en segunda convocatoria`
+    : `siendo las ${h1} horas en primera convocatoria`;
+
+  const sep = '─'.repeat(50);
+
+  const ptxt = puntos.map((titulo,i)=>{
+    const c = puntosContenido[i]||{};
+    let t=`${i+1}. ${titulo.toUpperCase()}\n\n`;
+    if(c.debate) t+=c.debate+'\n\n';
+    if(c.pendiente) t+='[PENDIENTE DE COMPLETAR]\n\n';
+    else if(c.acuerdo){
+      t+=c.acuerdo;
+      if(c.unanimidad) t+='\n\nAprobado por unanimidad.';
+      t+='\n\n';
+    }
+    return t;
+  }).join(sep+'\n\n');
+
+  const txt =
+`ACTA DE LA ${tipo.toUpperCase()}
+DE LA COMUNIDAD DE PROPIETARIOS
+"${nom.toUpperCase()}"
+CIF: ${cif}
+
+${sep}
+
+En Melilla, ${convTxt}, del día ${fecha}, en ${lugar}, debidamente convocados, se reúnen en ${conv} convocatoria los copropietarios que se relacionan, actuando como Secretaria-Administradora ${sec} y como Presidente/a ${pres}.
+
+ORDEN DEL DÍA:
+${odiaList}
+
+ASISTENTES:
+${asistList||'  (sin asistentes registrados)'}
+
+TOTAL: ${asistentes.filter(a=>a.nombre).length} asistente(s)
+
+${sep}
+
+Abierta la sesión por la Sra. Administradora, se pasa a tratar los diferentes puntos del Orden del Día.
+
+${sep}
+
+${ptxt}${sep}
+
+Y sin más asuntos que tratar, la Sra. Administradora levantó la sesión a las ${hfin} horas del día al principio indicado, de todo lo cual, yo como Secretaria-Administradora doy fe.
+
+
+   Vº Bº EL/LA PRESIDENTE/A                    LA SECRETARIA-ADMINISTRADORA
+
+
+   _______________________________          _______________________________
+   ${pres}`;
+
+  document.getElementById('preview-text').textContent = txt;
+  window._previewTxt = txt;
+  window._previewNom = nom;
+  window._previewFecha = document.getElementById('fecha').value;
+}
+
+function copiarTexto() {
+  navigator.clipboard.writeText(window._previewTxt||'').then(()=>{
+    const ok = document.getElementById('copy-ok');
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none', 2500);
+  });
+}
+
+function descargarTxt() {
+  const nom = (window._previewNom||'acta').replace(/\s+/g,'_');
+  const fecha = (window._previewFecha||'').replace(/-/g,'');
+  const blob = new Blob([window._previewTxt||''], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Acta_${nom}_${fecha}.txt`;
+  a.click();
+}
+
+function nuevaActa() {
+  if(confirm('¿Empezar un acta nueva? Se borrarán los datos actuales.')) {
+    asistentes=[{nombre:'',vivienda:'',representadoPor:''}];
+    puntos=['Aprobación acta anterior','Estado de cuentas','Ruegos y preguntas'];
+    puntosContenido={};
+    document.querySelectorAll('input[type=text],input:not([type]),textarea').forEach(el=>el.value='');
+    document.getElementById('fecha').value=new Date().toISOString().split('T')[0];
+    renderAsistentes();
+    renderPuntos();
+    goTo(0);
+  }
+}
+
+// INIT
+document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+renderAsistentes();
+renderPuntos();
+</script>
+</body>
+</html>
