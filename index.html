@@ -7,276 +7,131 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #F7F5F0;
-    --surface: #FFFFFF;
-    --surface2: #F0EDE6;
-    --border: #E0DBD0;
-    --border2: #C8C2B4;
-    --text: #1A1814;
-    --text2: #6B6558;
-    --text3: #A09890;
-    --accent: #2B4A3F;
-    --accent-light: #E8F0EE;
-    --accent-text: #1A3028;
-    --warn: #7A4A10;
-    --warn-bg: #FDF3E3;
-    --danger: #8B2020;
-    --danger-bg: #FDF0F0;
-    --success: #1A5C35;
-    --success-bg: #EAF4EE;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --bg: #F7F5F0; --surface: #FFFFFF; --surface2: #F0EDE6;
+    --border: #E0DBD0; --border2: #C8C2B4;
+    --text: #1A1814; --text2: #6B6558; --text3: #A09890;
+    --accent: #2B4A3F; --accent-light: #E8F0EE; --accent-text: #1A3028;
+    --warn: #7A4A10; --warn-bg: #FDF3E3;
+    --danger: #8B2020; --danger-bg: #FDF0F0;
+    --success: #1A5C35; --success-bg: #EAF4EE;
+    --radius: 10px; --radius-sm: 6px;
   }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.6;
-  }
+  /* LOGIN */
+  #pantalla-login { display:none; min-height:100vh; align-items:center; justify-content:center; background:var(--bg); }
+  .login-box { background:#fff; border:1px solid var(--border); border-radius:16px; padding:36px 40px; width:100%; max-width:400px; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+  .login-logo { font-family:'Lora',serif; font-size:20px; font-weight:500; color:var(--accent); margin-bottom:4px; }
+  .login-sub { font-size:13px; color:var(--text3); margin-bottom:28px; }
+  .login-field { margin-bottom:14px; }
+  .login-field label { display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:5px; }
+  .login-field input { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; }
+  .login-field input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(43,74,63,0.1); background:#fff; }
 
-  /* LAYOUT */
+  /* HISTORIAL */
+  #pantalla-historial { display:none; }
+  .hist-wrap { max-width:760px; margin:0 auto; padding:40px 24px; }
+  .hist-wrap h1 { font-family:'Lora',serif; font-size:22px; font-weight:500; margin-bottom:4px; }
+  .hist-sub { font-size:13px; color:var(--text3); margin-bottom:28px; }
+  .acta-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .acta-card:hover { border-color:var(--border2); }
+  .acta-card-info { flex:1; min-width:0; }
+  .acta-card-nombre { font-weight:500; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .acta-card-meta { font-size:12px; color:var(--text3); margin-top:2px; }
+  .acta-card-actions { display:flex; gap:8px; flex-shrink:0; }
+  .nueva-card { background:#fff; border:2px dashed var(--border2); border-radius:var(--radius); padding:18px; text-align:center; cursor:pointer; color:var(--text3); font-size:13px; margin-top:4px; transition:border-color .15s; }
+  .nueva-card:hover { border-color:var(--accent); color:var(--accent-text); }
+
+  /* APP */
+  #pantalla-app { display:none; }
   .app { display: flex; min-height: 100vh; }
-
-  .sidebar {
-    width: 240px;
-    flex-shrink: 0;
-    background: var(--accent);
-    padding: 2rem 1.25rem;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-  }
-
-  .sidebar-logo {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 2.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-  }
+  .sidebar { width: 240px; flex-shrink: 0; background: var(--accent); padding: 2rem 1.25rem; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.15); cursor:pointer; }
   .sidebar-logo i { font-size: 22px; color: rgba(255,255,255,0.9); }
   .sidebar-logo span { font-family: 'Lora', serif; font-size: 15px; color: #fff; font-weight: 500; line-height: 1.3; }
-
   .sidebar-steps { flex: 1; }
-  .sidebar-step {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    margin-bottom: 4px;
-    transition: background .15s;
-    color: rgba(255,255,255,0.55);
-    font-size: 13px;
-  }
+  .sidebar-step { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; margin-bottom: 4px; transition: background .15s; color: rgba(255,255,255,0.55); font-size: 13px; }
   .sidebar-step:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
   .sidebar-step.active { background: rgba(255,255,255,0.15); color: #fff; }
   .sidebar-step.done { color: rgba(255,255,255,0.75); }
   .sidebar-step.done .step-num { background: rgba(255,255,255,0.2); }
-  .step-num {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 500; flex-shrink: 0;
-  }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
   .sidebar-step.active .step-num { background: #fff; color: var(--accent); }
   .sidebar-step.done .step-num::before { content: '✓'; }
   .sidebar-step.done .step-num-inner { display: none; }
+  .sidebar-footer { padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; }
+  .sidebar-save { margin-bottom:1rem; }
+  .btn-save-acta { width:100%; padding:9px; background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.3); border-radius:var(--radius-sm); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background .15s; }
+  .btn-save-acta:hover { background:rgba(255,255,255,0.25); }
+  .sync-indicator { text-align:center; font-size:11px; color:rgba(255,255,255,0.4); margin-top:6px; min-height:16px; }
 
-  .sidebar-footer {
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    font-size: 11px;
-    color: rgba(255,255,255,0.4);
-    text-align: center;
-  }
-
-  .main {
-    margin-left: 240px;
-    flex: 1;
-    padding: 2.5rem 3rem;
-    max-width: 860px;
-  }
-
+  .main { margin-left: 240px; flex: 1; padding: 2.5rem 3rem; max-width: 860px; }
   .page-header { margin-bottom: 2rem; }
   .page-header h2 { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; margin-bottom: 4px; }
   .page-header p { color: var(--text2); font-size: 13px; }
-
-  /* SECTIONS */
   .section { display: none; }
   .section.active { display: block; }
-
-  /* CARDS */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.25rem;
-  }
-  .card-title {
-    font-size: 12px; font-weight: 500; text-transform: uppercase;
-    letter-spacing: .06em; color: var(--text2);
-    margin-bottom: 1rem; padding-bottom: .6rem;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 7px;
-  }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+  .card-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin-bottom: 1rem; padding-bottom: .6rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 7px; }
   .card-title i { font-size: 15px; }
-
-  /* FIELDS */
   .field { margin-bottom: 1rem; }
   .field:last-child { margin-bottom: 0; }
-  .field label {
-    display: block; font-size: 12px; font-weight: 500;
-    color: var(--text2); margin-bottom: 5px;
-  }
-  .field input, .field textarea, .field select {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    font-family: 'DM Sans', sans-serif;
-    transition: border .15s, box-shadow .15s;
-    appearance: none;
-  }
-  .field input:focus, .field textarea:focus, .field select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(43,74,63,0.1);
-    background: #fff;
-  }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; transition: border .15s, box-shadow .15s; appearance: none; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(43,74,63,0.1); background: #fff; }
   .field textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
   .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6558' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-
-  /* BUTTONS */
-  .btn {
-    padding: 9px 20px;
-    border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: all .15s;
-    display: inline-flex; align-items: center; gap: 7px;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .btn-primary {
-    background: var(--accent); color: #fff; border: none;
-  }
+  .btn { padding: 9px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 7px; font-family: 'DM Sans', sans-serif; border:none; }
+  .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover { background: #213d34; }
-  .btn-secondary {
-    background: transparent; color: var(--text2);
-    border: 1px solid var(--border2);
-  }
+  .btn-secondary { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
   .btn-secondary:hover { background: var(--surface2); }
   .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid #F5C0C0; }
   .btn-sm { padding: 5px 12px; font-size: 12px; }
   .btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
-
-  /* NAV */
-  .nav {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 2rem; padding-top: 1.25rem;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ASISTENTES */
-  .asistente-row {
-    display: grid; grid-template-columns: 2fr 1fr 2fr 32px;
-    gap: 8px; align-items: center; margin-bottom: 8px;
-  }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .asistente-row { display: grid; grid-template-columns: 2fr 1fr 2fr 32px; gap: 8px; align-items: center; margin-bottom: 8px; }
   .asistente-row input { font-size: 13px; }
-  .btn-icon {
-    width: 30px; height: 30px; border-radius: 50%;
-    border: 1px solid var(--border2); background: transparent;
-    color: var(--text3); cursor: pointer; font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-  }
+  .btn-icon { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2); background: transparent; color: var(--text3); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
   .btn-icon:hover { background: var(--danger-bg); color: var(--danger); border-color: #F5C0C0; }
-  .col-label {
-    font-size: 11px; color: var(--text3); font-weight: 500;
-    text-transform: uppercase; letter-spacing: .04em;
-    padding-bottom: 4px;
-  }
-  .asistente-headers {
-    display: grid; grid-template-columns: 2fr 1fr 2fr 32px;
-    gap: 8px; margin-bottom: 4px;
-  }
-
-  /* PUNTOS */
-  .punto-row {
-    display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
-  }
-  .punto-num {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--accent-light); color: var(--accent-text);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 500; flex-shrink: 0;
-  }
-
-  /* PUNTO CONTENT */
-  .punto-content-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  .punto-content-header {
-    padding: .9rem 1.25rem;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .punto-content-header .num {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 500; flex-shrink: 0;
-  }
+  .col-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; padding-bottom: 4px; }
+  .asistente-headers { display: grid; grid-template-columns: 2fr 1fr 2fr 32px; gap: 8px; margin-bottom: 4px; }
+  .punto-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .punto-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-light); color: var(--accent-text); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+  .punto-content-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden; }
+  .punto-content-header { padding: .9rem 1.25rem; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .punto-content-header .num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
   .punto-content-header .titulo { font-size: 14px; font-weight: 500; }
   .punto-content-body { padding: 1.25rem; }
   .checkbox-group { display: flex; gap: 1.5rem; margin-top: .5rem; }
   .checkbox-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text2); cursor: pointer; }
   .checkbox-item input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
-
-  /* BADGE */
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500;
-  }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
   .badge-warn { background: var(--warn-bg); color: var(--warn); }
   .badge-success { background: var(--success-bg); color: var(--success); }
-
-  /* PREVIEW */
-  .preview-box {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    font-family: 'Lora', serif;
-    font-size: 13px;
-    line-height: 1.9;
-    white-space: pre-wrap;
-    max-height: 500px;
-    overflow-y: auto;
-    color: var(--text);
-  }
-
-  /* DIVIDER */
+  .preview-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; font-family: 'Lora', serif; font-size: 13px; line-height: 1.9; white-space: pre-wrap; max-height: 500px; overflow-y: auto; color: var(--text); }
   .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
 
-  /* MOBILE */
+  /* LOADING */
+  .loading-overlay { display:none; position:fixed; inset:0; background:rgba(247,245,240,.85); z-index:300; align-items:center; justify-content:center; flex-direction:column; gap:12px; }
+  .loading-overlay.show { display:flex; }
+  .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+  .loading-text { font-size:13px; color:var(--text2); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ALERT */
+  .alert-box { padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; margin-top:10px; }
+  .alert-error { background:var(--danger-bg); color:var(--danger); border:1px solid #F5C0C0; }
+  .alert-success { background:var(--success-bg); color:var(--success); border:1px solid #a8d8b8; }
+
   @media (max-width: 700px) {
     .sidebar { display: none; }
     .main { margin-left: 0; padding: 1.5rem 1rem; }
@@ -287,54 +142,69 @@
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- SIDEBAR -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Cargando...</div>
+</div>
+
+<!-- ═══ LOGIN ═══════════════════════════════════════════════════════════════ -->
+<div id="pantalla-login" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--bg)">
+  <div class="login-box">
+    <div class="login-logo"><i class="ti ti-building-community" style="margin-right:8px"></i>Actas · Comunidades</div>
+    <div class="login-sub">Administración de Fincas · Melilla</div>
+    <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')loginBtn()"></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginBtn()"></div>
+    <div id="login-alert"></div>
+    <button class="btn btn-primary btn-full" onclick="loginBtn()" style="margin-top:14px;border:none">Entrar</button>
+  </div>
+</div>
+
+<!-- ═══ HISTORIAL DE ACTAS ════════════════════════════════════════════════ -->
+<div id="pantalla-historial">
+  <div class="hist-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h1><i class="ti ti-files" style="font-size:20px;margin-right:8px;color:var(--accent)"></i>Actas guardadas</h1>
+      <button class="btn btn-secondary btn-sm" onclick="cerrarSesion()"><i class="ti ti-logout"></i> Cerrar sesión</button>
+    </div>
+    <div class="hist-sub">Selecciona un acta para continuar editándola o crea una nueva</div>
+    <div id="lista-actas"></div>
+    <div class="nueva-card" onclick="nuevaActa()">
+      <span style="font-size:22px;display:block;margin-bottom:4px">+</span>
+      Redactar nueva acta
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP (EDITOR DE ACTA) ══════════════════════════════════════════════ -->
+<div id="pantalla-app">
+<div class="app">
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <i class="ti ti-building-community"></i>
+    <div class="sidebar-logo" onclick="volverHistorial()" title="Volver al historial">
+      <i class="ti ti-arrow-left" style="font-size:16px"></i>
       <span>Actas<br>Comunidades</span>
     </div>
     <nav class="sidebar-steps" id="sidebar-steps">
-      <div class="sidebar-step active" onclick="goTo(0)" id="s0">
-        <div class="step-num"><span class="step-num-inner">1</span></div>
-        <span>Comunidad</span>
-      </div>
-      <div class="sidebar-step" onclick="goTo(1)" id="s1">
-        <div class="step-num"><span class="step-num-inner">2</span></div>
-        <span>Asistentes</span>
-      </div>
-      <div class="sidebar-step" onclick="goTo(2)" id="s2">
-        <div class="step-num"><span class="step-num-inner">3</span></div>
-        <span>Orden del día</span>
-      </div>
-      <div class="sidebar-step" onclick="goTo(3)" id="s3">
-        <div class="step-num"><span class="step-num-inner">4</span></div>
-        <span>Puntos tratados</span>
-      </div>
-      <div class="sidebar-step" onclick="goTo(4)" id="s4">
-        <div class="step-num"><span class="step-num-inner">5</span></div>
-        <span>Vista previa</span>
-      </div>
+      <div class="sidebar-step active" onclick="goTo(0)" id="s0"><div class="step-num"><span class="step-num-inner">1</span></div><span>Comunidad</span></div>
+      <div class="sidebar-step" onclick="goTo(1)" id="s1"><div class="step-num"><span class="step-num-inner">2</span></div><span>Asistentes</span></div>
+      <div class="sidebar-step" onclick="goTo(2)" id="s2"><div class="step-num"><span class="step-num-inner">3</span></div><span>Orden del día</span></div>
+      <div class="sidebar-step" onclick="goTo(3)" id="s3"><div class="step-num"><span class="step-num-inner">4</span></div><span>Puntos tratados</span></div>
+      <div class="sidebar-step" onclick="goTo(4)" id="s4"><div class="step-num"><span class="step-num-inner">5</span></div><span>Vista previa</span></div>
     </nav>
+    <div class="sidebar-save">
+      <button class="btn-save-acta" onclick="guardarActaManual()"><i class="ti ti-device-floppy"></i> Guardar acta</button>
+      <div class="sync-indicator" id="sync-ind"></div>
+    </div>
     <div class="sidebar-footer">Administración de Fincas · Melilla</div>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
-
     <!-- PASO 1 -->
     <div class="section active" id="sec0">
-      <div class="page-header">
-        <h2>Datos de la comunidad</h2>
-        <p>Información general de la junta y la finca</p>
-      </div>
-
+      <div class="page-header"><h2>Datos de la comunidad</h2><p>Información general de la junta y la finca</p></div>
       <div class="card">
         <div class="card-title"><i class="ti ti-building"></i> Identificación</div>
-        <div class="field"><label>Nombre de la comunidad</label>
-          <input id="nombre_com" placeholder="Ej: Edificios Álvaro de Bazán, Bloque 5" />
-        </div>
+        <div class="field"><label>Nombre de la comunidad</label><input id="nombre_com" placeholder="Ej: Edificios Álvaro de Bazán, Bloque 5" /></div>
         <div class="row">
           <div class="field"><label>CIF</label><input id="cif" placeholder="H-12345678" /></div>
           <div class="field"><label>Tipo de junta</label>
@@ -346,7 +216,6 @@
           </div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title"><i class="ti ti-calendar-event"></i> Fecha y lugar</div>
         <div class="row">
@@ -365,19 +234,13 @@
           </select>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title"><i class="ti ti-user-check"></i> Mesa de la junta</div>
         <div class="row">
-          <div class="field"><label>Secretaria-Administradora</label>
-            <input id="secretaria" placeholder="D.ª Nombre Apellido Apellido" />
-          </div>
-          <div class="field"><label>Presidente/a</label>
-            <input id="presidente" placeholder="D. / D.ª Nombre Apellido" />
-          </div>
+          <div class="field"><label>Secretaria-Administradora</label><input id="secretaria" placeholder="D.ª Nombre Apellido Apellido" /></div>
+          <div class="field"><label>Presidente/a</label><input id="presidente" placeholder="D. / D.ª Nombre Apellido" /></div>
         </div>
       </div>
-
       <div class="nav">
         <div></div>
         <button class="btn btn-primary" onclick="goTo(1)">Siguiente <i class="ti ti-arrow-right"></i></button>
@@ -386,13 +249,9 @@
 
     <!-- PASO 2 -->
     <div class="section" id="sec1">
-      <div class="page-header">
-        <h2>Asistentes</h2>
-        <p>Propietarios presentes o representados en la junta</p>
-      </div>
+      <div class="page-header"><h2>Asistentes</h2><p>Propietarios presentes o representados en la junta</p></div>
       <div class="card">
-        <div class="card-title">
-          <i class="ti ti-users"></i> Lista de asistentes
+        <div class="card-title"><i class="ti ti-users"></i> Lista de asistentes
           <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addAsistente()"><i class="ti ti-plus"></i> Añadir</button>
         </div>
         <div class="asistente-headers">
@@ -411,13 +270,9 @@
 
     <!-- PASO 3 -->
     <div class="section" id="sec2">
-      <div class="page-header">
-        <h2>Orden del día</h2>
-        <p>Define los puntos a tratar. En el siguiente paso añadirás el contenido de cada uno.</p>
-      </div>
+      <div class="page-header"><h2>Orden del día</h2><p>Define los puntos a tratar.</p></div>
       <div class="card">
-        <div class="card-title">
-          <i class="ti ti-list-numbers"></i> Puntos
+        <div class="card-title"><i class="ti ti-list-numbers"></i> Puntos
           <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addPunto()"><i class="ti ti-plus"></i> Añadir punto</button>
         </div>
         <div id="puntos-list"></div>
@@ -430,10 +285,7 @@
 
     <!-- PASO 4 -->
     <div class="section" id="sec3">
-      <div class="page-header">
-        <h2>Puntos tratados</h2>
-        <p>Redacta el debate y los acuerdos de cada punto</p>
-      </div>
+      <div class="page-header"><h2>Puntos tratados</h2><p>Redacta el debate y los acuerdos de cada punto</p></div>
       <div id="puntos-contenido"></div>
       <div class="nav">
         <button class="btn btn-secondary" onclick="goTo(2)"><i class="ti ti-arrow-left"></i> Anterior</button>
@@ -443,91 +295,281 @@
 
     <!-- PASO 5 -->
     <div class="section" id="sec4">
-      <div class="page-header">
-        <h2>Vista previa y exportar</h2>
-        <p>Revisa el acta antes de copiarla o descargarla</p>
-      </div>
+      <div class="page-header"><h2>Vista previa y exportar</h2><p>Revisa el acta y genera el documento Word con formato profesional</p></div>
       <div class="card">
         <div class="card-title"><i class="ti ti-eye"></i> Borrador del acta</div>
         <div class="preview-box" id="preview-text"></div>
       </div>
-      <div style="display:flex;gap:12px;margin-top:.5rem">
-        <button class="btn btn-primary btn-full" onclick="copiarTexto()"><i class="ti ti-copy"></i> Copiar texto</button>
-        <button class="btn btn-secondary btn-full" onclick="descargarTxt()"><i class="ti ti-download"></i> Descargar .txt</button>
+      <div style="margin-top:1rem">
+        <button class="btn btn-primary btn-full" id="btn-word" onclick="generarWord()"><i class="ti ti-file-word"></i> Generar acta en Word (.docx)</button>
       </div>
-      <div id="copy-ok" style="display:none;text-align:center;margin-top:.75rem">
+      <div id="word-status" style="display:none;margin-top:.75rem">
+        <div style="background:var(--accent-light);border:1px solid #b8d4cc;border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:center;gap:12px">
+          <div id="word-spinner" style="width:18px;height:18px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--accent-text)" id="word-status-txt">Generando el documento Word...</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">Esto puede tardar unos segundos</div>
+          </div>
+        </div>
+      </div>
+      <div id="word-error" style="display:none;margin-top:.75rem">
+        <div style="background:var(--danger-bg);border:1px solid #F5C0C0;border-radius:var(--radius);padding:1rem 1.25rem;font-size:13px;color:var(--danger)" id="word-error-txt"></div>
+      </div>
+      <div id="word-ready" style="display:none;margin-top:.75rem">
+        <div style="background:var(--success-bg);border:1px solid #a8d8b8;border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <i class="ti ti-circle-check" style="font-size:20px;color:var(--success)"></i>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--success)">Documento generado correctamente</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Listo para descargar</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-descarga" onclick="descargarDocx()"><i class="ti ti-download"></i> Descargar .docx</button>
+        </div>
+      </div>
+      <div style="margin-top:.75rem">
+        <button class="btn btn-secondary btn-full" onclick="copiarTexto()"><i class="ti ti-copy"></i> Copiar texto plano</button>
+      </div>
+      <div id="copy-ok" style="display:none;text-align:center;margin-top:.5rem">
         <span class="badge badge-success"><i class="ti ti-check"></i> Copiado al portapapeles</span>
       </div>
       <div class="nav">
         <button class="btn btn-secondary" onclick="goTo(3)"><i class="ti ti-arrow-left"></i> Volver a editar</button>
-        <button class="btn btn-secondary" onclick="nuevaActa()"><i class="ti ti-file-plus"></i> Nueva acta</button>
+        <button class="btn btn-secondary" onclick="volverHistorial()"><i class="ti ti-files"></i> Volver al historial</button>
       </div>
     </div>
-
   </main>
+</div>
 </div>
 
 <script>
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBt4osJcR5W2qEoDkhHa4_aY96pxCYIjik",
+  authDomain: "contabilidad-comunidades.firebaseapp.com",
+  databaseURL: "https://contabilidad-comunidades-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "contabilidad-comunidades",
+  storageBucket: "contabilidad-comunidades.firebasestorage.app",
+  messagingSenderId: "438232004765",
+  appId: "1:438232004765:web:5db395e1a88233ade43c74"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+// ── ESTADO ────────────────────────────────────────────────────────────────────
 let currentStep = 0;
 let asistentes = [{nombre:'',vivienda:'',representadoPor:''}];
 let puntos = ['Aprobación acta anterior','Estado de cuentas','Ruegos y preguntas'];
 let puntosContenido = {};
+let actaActualId = null;
+let saveTimeout = null;
 
-function goTo(n) {
-  if(n===3) renderPuntosContenido();
-  if(n===4) renderPreview();
+// ── LOADING ───────────────────────────────────────────────────────────────────
+function showLoading(txt='Cargando...'){document.getElementById('loading-text').textContent=txt;document.getElementById('loading-overlay').classList.add('show');}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('show');}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  hideLoading();
+  if(user){
+    document.getElementById('pantalla-login').style.display='none';
+    mostrarHistorial();
+  } else {
+    document.getElementById('pantalla-login').style.display='flex';
+    document.getElementById('pantalla-historial').style.display='none';
+    document.getElementById('pantalla-app').style.display='none';
+  }
+});
+
+async function loginBtn(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showAlertLogin('Introduce email y contraseña.');return;}
+  showLoading('Iniciando sesión...');
+  try{ await auth.signInWithEmailAndPassword(email,pass); }
+  catch(e){
+    hideLoading();
+    const msgs={'auth/wrong-password':'Contraseña incorrecta.','auth/user-not-found':'Usuario no encontrado.','auth/invalid-email':'Email no válido.','auth/too-many-requests':'Demasiados intentos. Espera un momento.'};
+    showAlertLogin(msgs[e.code]||'Error al iniciar sesión.');
+  }
+}
+function showAlertLogin(msg){document.getElementById('login-alert').innerHTML=`<div class="alert-box alert-error">${msg}</div>`;}
+async function cerrarSesion(){await auth.signOut();}
+
+// ── FIREBASE CRUD ─────────────────────────────────────────────────────────────
+async function fbGetActas(){const snap=await db.ref('actas').once('value');const val=snap.val();if(!val)return[];try{return JSON.parse(val);}catch(e){return[];}}
+async function fbSaveActas(actas){await db.ref('actas').set(JSON.stringify(actas));}
+async function fbGetActa(id){const snap=await db.ref('actas_data/'+id).once('value');const val=snap.val();if(!val)return null;try{return JSON.parse(val);}catch(e){return null;}}
+async function fbSaveActa(id,data){await db.ref('actas_data/'+id).set(JSON.stringify(data));}
+async function fbDeleteActa(id){await db.ref('actas_data/'+id).remove();}
+
+// ── HISTORIAL ─────────────────────────────────────────────────────────────────
+async function mostrarHistorial(){
+  document.getElementById('pantalla-app').style.display='none';
+  document.getElementById('pantalla-historial').style.display='block';
+  showLoading('Cargando actas...');
+  let actas=[];
+  try{actas=await fbGetActas();}catch(e){}
+  hideLoading();
+  const el=document.getElementById('lista-actas');
+  if(!actas.length){el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">Aún no hay actas guardadas. Crea la primera.</div>';return;}
+  // Ordenar por fecha desc
+  actas.sort((a,b)=>b.fechaGuardado.localeCompare(a.fechaGuardado));
+  el.innerHTML=actas.map(a=>`
+    <div class="acta-card">
+      <div class="acta-card-info">
+        <div class="acta-card-nombre">${esc(a.nombre||'Acta sin título')}</div>
+        <div class="acta-card-meta">${a.tipo||''} · ${fmtFechaCorta(a.fechaJunta)} · Guardada el ${fmtFechaCorta(a.fechaGuardado)}</div>
+      </div>
+      <div class="acta-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="abrirActa('${a.id}')"><i class="ti ti-edit"></i> Abrir</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarActa('${a.id}','${esc(a.nombre||'esta acta')}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+async function abrirActa(id){
+  showLoading('Cargando acta...');
+  try{
+    const data=await fbGetActa(id);
+    if(!data){hideLoading();alert('No se pudo cargar el acta.');return;}
+    actaActualId=id;
+    // Cargar datos
+    asistentes=data.asistentes||[{nombre:'',vivienda:'',representadoPor:''}];
+    puntos=data.puntos||['Aprobación acta anterior','Estado de cuentas','Ruegos y preguntas'];
+    puntosContenido=data.puntosContenido||{};
+    // Rellenar campos
+    const c=data.campos||{};
+    ['nombre_com','cif','lugar','secretaria','presidente'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=c[k]||'';});
+    ['fecha','hora1','hora2','hora_fin'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=c[k]||'';});
+    ['tipo_junta','convocatoria'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=c[k]||el.value;});
+    hideLoading();
+    document.getElementById('pantalla-historial').style.display='none';
+    document.getElementById('pantalla-app').style.display='block';
+    goTo(0);
+    renderAsistentes();
+    renderPuntos();
+    setSyncInd('Guardado');
+  }catch(e){hideLoading();alert('Error al cargar el acta.');}
+}
+
+function nuevaActa(){
+  actaActualId=null;
+  asistentes=[{nombre:'',vivienda:'',representadoPor:''}];
+  puntos=['Aprobación acta anterior','Estado de cuentas','Ruegos y preguntas'];
+  puntosContenido={};
+  document.querySelectorAll('#sec0 input[type=text],#sec0 input:not([type]),#sec0 textarea').forEach(el=>el.value='');
+  document.getElementById('fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('hora1').value='';
+  document.getElementById('hora2').value='';
+  document.getElementById('hora_fin').value='';
+  document.getElementById('pantalla-historial').style.display='none';
+  document.getElementById('pantalla-app').style.display='block';
+  renderAsistentes();
+  renderPuntos();
+  goTo(0);
+  setSyncInd('Sin guardar');
+}
+
+async function volverHistorial(){
+  document.getElementById('pantalla-app').style.display='none';
+  await mostrarHistorial();
+}
+
+async function guardarActaManual(){
+  setSyncInd('Guardando...');
+  const campos={
+    nombre_com:document.getElementById('nombre_com').value,
+    cif:document.getElementById('cif').value,
+    fecha:document.getElementById('fecha').value,
+    lugar:document.getElementById('lugar').value,
+    hora1:document.getElementById('hora1').value,
+    hora2:document.getElementById('hora2').value,
+    hora_fin:document.getElementById('hora_fin').value,
+    tipo_junta:document.getElementById('tipo_junta').value,
+    convocatoria:document.getElementById('convocatoria').value,
+    secretaria:document.getElementById('secretaria').value,
+    presidente:document.getElementById('presidente').value
+  };
+  const data={campos,asistentes,puntos,puntosContenido};
+  const ahora=new Date().toISOString().split('T')[0];
+  try{
+    if(!actaActualId){
+      actaActualId='acta_'+Date.now();
+      const actas=await fbGetActas();
+      actas.push({id:actaActualId,nombre:campos.nombre_com||'Acta sin título',tipo:campos.tipo_junta,fechaJunta:campos.fecha,fechaGuardado:ahora});
+      await fbSaveActas(actas);
+    } else {
+      // Actualizar índice
+      const actas=await fbGetActas();
+      const i=actas.findIndex(a=>a.id===actaActualId);
+      if(i>=0){actas[i].nombre=campos.nombre_com||'Acta sin título';actas[i].fechaJunta=campos.fecha;actas[i].fechaGuardado=ahora;await fbSaveActas(actas);}
+    }
+    await fbSaveActa(actaActualId,data);
+    setSyncInd('✓ Guardada');
+  }catch(e){setSyncInd('Error al guardar');}
+}
+
+function autoGuardar(){
+  clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(()=>guardarActaManual(),2000);
+  setSyncInd('Sin guardar...');
+}
+
+async function eliminarActa(id,nombre){
+  if(!confirm(`¿Eliminar el acta "${nombre}"?\n\nEsta acción no se puede deshacer.`))return;
+  showLoading('Eliminando...');
+  try{
+    await fbDeleteActa(id);
+    const actas=(await fbGetActas()).filter(a=>a.id!==id);
+    await fbSaveActas(actas);
+  }catch(e){}
+  hideLoading();
+  mostrarHistorial();
+}
+
+function setSyncInd(txt){const el=document.getElementById('sync-ind');if(el)el.textContent=txt;}
+function fmtFechaCorta(s){if(!s||s.length<10)return s||'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────────────────────
+function goTo(n){
+  if(n===3)renderPuntosContenido();
+  if(n===4)renderPreview();
   document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===n));
-  document.querySelectorAll('.sidebar-step').forEach((s,i)=>{
-    s.classList.remove('active','done');
-    if(i===n) s.classList.add('active');
-    else if(i<n) s.classList.add('done');
-  });
-  currentStep = n;
+  document.querySelectorAll('.sidebar-step').forEach((s,i)=>{s.classList.remove('active','done');if(i===n)s.classList.add('active');else if(i<n)s.classList.add('done');});
+  currentStep=n;
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function addAsistente() {
-  asistentes.push({nombre:'',vivienda:'',representadoPor:''});
-  renderAsistentes();
-}
-function removeAsistente(i) {
-  if(asistentes.length===1) return;
-  asistentes.splice(i,1);
-  renderAsistentes();
-}
-function renderAsistentes() {
-  document.getElementById('asistentes-list').innerHTML = asistentes.map((a,i)=>`
+// ── ASISTENTES ────────────────────────────────────────────────────────────────
+function addAsistente(){asistentes.push({nombre:'',vivienda:'',representadoPor:''});renderAsistentes();}
+function removeAsistente(i){if(asistentes.length===1)return;asistentes.splice(i,1);renderAsistentes();}
+function renderAsistentes(){
+  document.getElementById('asistentes-list').innerHTML=asistentes.map((a,i)=>`
     <div class="asistente-row">
-      <input placeholder="Nombre completo" value="${esc(a.nombre)}" oninput="asistentes[${i}].nombre=this.value" />
-      <input placeholder="Ej: 1ºA, Bajo Dcha" value="${esc(a.vivienda)}" oninput="asistentes[${i}].vivienda=this.value" />
-      <input placeholder="Nombre del representante" value="${esc(a.representadoPor)}" oninput="asistentes[${i}].representadoPor=this.value" />
+      <input placeholder="Nombre completo" value="${esc(a.nombre)}" oninput="asistentes[${i}].nombre=this.value;autoGuardar()" />
+      <input placeholder="Ej: 1ºA, Bajo Dcha" value="${esc(a.vivienda)}" oninput="asistentes[${i}].vivienda=this.value;autoGuardar()" />
+      <input placeholder="Nombre del representante" value="${esc(a.representadoPor)}" oninput="asistentes[${i}].representadoPor=this.value;autoGuardar()" />
       <button class="btn-icon" onclick="removeAsistente(${i})" title="Eliminar">×</button>
     </div>`).join('');
 }
 
-function addPunto() {
-  puntos.push('Nuevo punto');
-  renderPuntos();
-}
-function removePunto(i) {
-  if(puntos.length===1) return;
-  puntos.splice(i,1);
-  delete puntosContenido[i];
-  renderPuntos();
-}
-function renderPuntos() {
-  document.getElementById('puntos-list').innerHTML = puntos.map((p,i)=>`
+// ── PUNTOS ────────────────────────────────────────────────────────────────────
+function addPunto(){puntos.push('Nuevo punto');renderPuntos();}
+function removePunto(i){if(puntos.length===1)return;puntos.splice(i,1);delete puntosContenido[i];renderPuntos();}
+function renderPuntos(){
+  document.getElementById('puntos-list').innerHTML=puntos.map((p,i)=>`
     <div class="punto-row">
       <div class="punto-num">${i+1}</div>
-      <input style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);font-family:inherit;font-size:14px;color:var(--text)"
-        value="${esc(p)}" oninput="puntos[${i}]=this.value" />
+      <input style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);font-family:inherit;font-size:14px;color:var(--text)" value="${esc(p)}" oninput="puntos[${i}]=this.value;autoGuardar()" />
       <button class="btn-icon" onclick="removePunto(${i})" title="Eliminar">×</button>
     </div>`).join('');
 }
 
-function renderPuntosContenido() {
-  document.getElementById('puntos-contenido').innerHTML = puntos.map((titulo,i)=>{
-    const c = puntosContenido[i]||{};
+function renderPuntosContenido(){
+  document.getElementById('puntos-contenido').innerHTML=puntos.map((titulo,i)=>{
+    const c=puntosContenido[i]||{};
     return `<div class="punto-content-block">
       <div class="punto-content-header">
         <div class="num">${i+1}</div>
@@ -536,158 +578,96 @@ function renderPuntosContenido() {
       </div>
       <div class="punto-content-body">
         <div class="field"><label>Desarrollo y debate</label>
-          <textarea placeholder="Describe lo tratado: intervenciones, información presentada, debate..." oninput="pc(${i},'debate',this.value)">${esc(c.debate||'')}</textarea>
+          <textarea placeholder="Describe lo tratado: intervenciones, información presentada, debate..." oninput="pc(${i},'debate',this.value);autoGuardar()">${esc(c.debate||'')}</textarea>
         </div>
         <div class="field"><label>Acuerdo adoptado</label>
-          <textarea style="min-height:70px" placeholder="Redacta el acuerdo, o escribe 'Sin acuerdo formal'..." oninput="pc(${i},'acuerdo',this.value)">${esc(c.acuerdo||'')}</textarea>
+          <textarea style="min-height:70px" placeholder="Redacta el acuerdo, o escribe 'Sin acuerdo formal'..." oninput="pc(${i},'acuerdo',this.value);autoGuardar()">${esc(c.acuerdo||'')}</textarea>
         </div>
         <div class="checkbox-group">
-          <label class="checkbox-item">
-            <input type="checkbox" ${c.unanimidad?'checked':''} onchange="pc(${i},'unanimidad',this.checked)" />
-            Aprobado por unanimidad
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" ${c.pendiente?'checked':''} onchange="pc(${i},'pendiente',this.checked);renderPuntosContenido()" />
-            Pendiente de completar
-          </label>
+          <label class="checkbox-item"><input type="checkbox" ${c.unanimidad?'checked':''} onchange="pc(${i},'unanimidad',this.checked);autoGuardar()" />Aprobado por unanimidad</label>
+          <label class="checkbox-item"><input type="checkbox" ${c.pendiente?'checked':''} onchange="pc(${i},'pendiente',this.checked);autoGuardar();renderPuntosContenido()" />Pendiente de completar</label>
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-function pc(i,k,v) {
-  if(!puntosContenido[i]) puntosContenido[i]={};
-  puntosContenido[i][k]=v;
+function pc(i,k,v){if(!puntosContenido[i])puntosContenido[i]={};puntosContenido[i][k]=v;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
+function fmtFecha(s){if(!s)return'___';const[y,m,d]=s.split('-');const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];return`${parseInt(d)} de ${M[parseInt(m)-1]} de ${y}`;}
+function fmtH(s){return s||'__:__';}
+
+function renderPreview(){
+  const nom=document.getElementById('nombre_com').value||'[COMUNIDAD]';
+  const cif=document.getElementById('cif').value||'[CIF]';
+  const tipo=document.getElementById('tipo_junta').value;
+  const fecha=fmtFecha(document.getElementById('fecha').value);
+  const lugar=document.getElementById('lugar').value||'el portal del edificio';
+  const h1=fmtH(document.getElementById('hora1').value);
+  const h2=fmtH(document.getElementById('hora2').value);
+  const hfin=fmtH(document.getElementById('hora_fin').value);
+  const conv=document.getElementById('convocatoria').value;
+  const sec=document.getElementById('secretaria').value||'[SECRETARIA-ADMINISTRADORA]';
+  const pres=document.getElementById('presidente').value||'[PRESIDENTE/A]';
+  const asistList=asistentes.filter(a=>a.nombre).map((a,i)=>{let s=`  ${String(i+1).padStart(2,'0')}. ${a.nombre}`;if(a.vivienda)s+=` — ${a.vivienda}`;if(a.representadoPor)s+=` (repr. por ${a.representadoPor})`;return s;}).join('\n');
+  const odiaList=puntos.map((p,i)=>`  ${String(i+1).padStart(2,'0')}. ${p}`).join('\n');
+  const convTxt=conv==='segunda'?`siendo las ${h1} horas en primera convocatoria y las ${h2} horas en segunda convocatoria`:`siendo las ${h1} horas en primera convocatoria`;
+  const sep='─'.repeat(50);
+  const ptxt=puntos.map((titulo,i)=>{const c=puntosContenido[i]||{};let t=`${i+1}. ${titulo.toUpperCase()}\n\n`;if(c.debate)t+=c.debate+'\n\n';if(c.pendiente)t+='[PENDIENTE DE COMPLETAR]\n\n';else if(c.acuerdo){t+=c.acuerdo;if(c.unanimidad)t+='\n\nAprobado por unanimidad.';t+='\n\n';}return t;}).join(sep+'\n\n');
+  const txt=`ACTA DE LA ${tipo.toUpperCase()}\nDE LA COMUNIDAD DE PROPIETARIOS\n"${nom.toUpperCase()}"\nCIF: ${cif}\n\n${sep}\n\nEn Melilla, ${convTxt}, del día ${fecha}, en ${lugar}, debidamente convocados, se reúnen en ${conv} convocatoria los copropietarios que se relacionan, actuando como Secretaria-Administradora ${sec} y como Presidente/a ${pres}.\n\nORDEN DEL DÍA:\n${odiaList}\n\nASISTENTES:\n${asistList||'  (sin asistentes registrados)'}\n\nTOTAL: ${asistentes.filter(a=>a.nombre).length} asistente(s)\n\n${sep}\n\nAbierta la sesión por la Sra. Administradora, se pasa a tratar los diferentes puntos del Orden del Día.\n\n${sep}\n\n${ptxt}${sep}\n\nY sin más asuntos que tratar, la Sra. Administradora levantó la sesión a las ${hfin} horas del día al principio indicado, de todo lo cual, yo como Secretaria-Administradora doy fe.\n\n\n   Vº Bº EL/LA PRESIDENTE/A                    LA SECRETARIA-ADMINISTRADORA\n\n\n   _______________________________          _______________________________\n   ${pres}`;
+  document.getElementById('preview-text').textContent=txt;
+  window._previewTxt=txt;
+  window._previewNom=nom;
+  window._previewFecha=document.getElementById('fecha').value;
 }
 
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ── WORD / COPIAR ─────────────────────────────────────────────────────────────
+function copiarTexto(){navigator.clipboard.writeText(window._previewTxt||'').then(()=>{const ok=document.getElementById('copy-ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',2500);});}
 
-function fmtFecha(s){
-  if(!s) return '___';
-  const [y,m,d]=s.split('-');
-  const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  return `${parseInt(d)} de ${M[parseInt(m)-1]} de ${y}`;
-}
-function fmtH(s){ return s||'__:__'; }
-
-function renderPreview() {
-  const nom = document.getElementById('nombre_com').value||'[COMUNIDAD]';
-  const cif = document.getElementById('cif').value||'[CIF]';
-  const tipo = document.getElementById('tipo_junta').value;
-  const fecha = fmtFecha(document.getElementById('fecha').value);
-  const lugar = document.getElementById('lugar').value||'el portal del edificio';
-  const h1 = fmtH(document.getElementById('hora1').value);
-  const h2 = fmtH(document.getElementById('hora2').value);
-  const hfin = fmtH(document.getElementById('hora_fin').value);
-  const conv = document.getElementById('convocatoria').value;
-  const sec = document.getElementById('secretaria').value||'[SECRETARIA-ADMINISTRADORA]';
-  const pres = document.getElementById('presidente').value||'[PRESIDENTE/A]';
-
-  const asistList = asistentes.filter(a=>a.nombre).map((a,i)=>{
-    let s=`  ${String(i+1).padStart(2,'0')}. ${a.nombre}`;
-    if(a.vivienda) s+=` — ${a.vivienda}`;
-    if(a.representadoPor) s+=` (repr. por ${a.representadoPor})`;
-    return s;
-  }).join('\n');
-
-  const odiaList = puntos.map((p,i)=>`  ${String(i+1).padStart(2,'0')}. ${p}`).join('\n');
-
-  const convTxt = conv==='segunda'
-    ? `siendo las ${h1} horas en primera convocatoria y las ${h2} horas en segunda convocatoria`
-    : `siendo las ${h1} horas en primera convocatoria`;
-
-  const sep = '─'.repeat(50);
-
-  const ptxt = puntos.map((titulo,i)=>{
-    const c = puntosContenido[i]||{};
-    let t=`${i+1}. ${titulo.toUpperCase()}\n\n`;
-    if(c.debate) t+=c.debate+'\n\n';
-    if(c.pendiente) t+='[PENDIENTE DE COMPLETAR]\n\n';
-    else if(c.acuerdo){
-      t+=c.acuerdo;
-      if(c.unanimidad) t+='\n\nAprobado por unanimidad.';
-      t+='\n\n';
-    }
-    return t;
-  }).join(sep+'\n\n');
-
-  const txt =
-`ACTA DE LA ${tipo.toUpperCase()}
-DE LA COMUNIDAD DE PROPIETARIOS
-"${nom.toUpperCase()}"
-CIF: ${cif}
-
-${sep}
-
-En Melilla, ${convTxt}, del día ${fecha}, en ${lugar}, debidamente convocados, se reúnen en ${conv} convocatoria los copropietarios que se relacionan, actuando como Secretaria-Administradora ${sec} y como Presidente/a ${pres}.
-
-ORDEN DEL DÍA:
-${odiaList}
-
-ASISTENTES:
-${asistList||'  (sin asistentes registrados)'}
-
-TOTAL: ${asistentes.filter(a=>a.nombre).length} asistente(s)
-
-${sep}
-
-Abierta la sesión por la Sra. Administradora, se pasa a tratar los diferentes puntos del Orden del Día.
-
-${sep}
-
-${ptxt}${sep}
-
-Y sin más asuntos que tratar, la Sra. Administradora levantó la sesión a las ${hfin} horas del día al principio indicado, de todo lo cual, yo como Secretaria-Administradora doy fe.
-
-
-   Vº Bº EL/LA PRESIDENTE/A                    LA SECRETARIA-ADMINISTRADORA
-
-
-   _______________________________          _______________________________
-   ${pres}`;
-
-  document.getElementById('preview-text').textContent = txt;
-  window._previewTxt = txt;
-  window._previewNom = nom;
-  window._previewFecha = document.getElementById('fecha').value;
-}
-
-function copiarTexto() {
-  navigator.clipboard.writeText(window._previewTxt||'').then(()=>{
-    const ok = document.getElementById('copy-ok');
-    ok.style.display='block';
-    setTimeout(()=>ok.style.display='none', 2500);
-  });
-}
-
-function descargarTxt() {
-  const nom = (window._previewNom||'acta').replace(/\s+/g,'_');
-  const fecha = (window._previewFecha||'').replace(/-/g,'');
-  const blob = new Blob([window._previewTxt||''], {type:'text/plain;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Acta_${nom}_${fecha}.txt`;
-  a.click();
-}
-
-function nuevaActa() {
-  if(confirm('¿Empezar un acta nueva? Se borrarán los datos actuales.')) {
-    asistentes=[{nombre:'',vivienda:'',representadoPor:''}];
-    puntos=['Aprobación acta anterior','Estado de cuentas','Ruegos y preguntas'];
-    puntosContenido={};
-    document.querySelectorAll('input[type=text],input:not([type]),textarea').forEach(el=>el.value='');
-    document.getElementById('fecha').value=new Date().toISOString().split('T')[0];
-    renderAsistentes();
-    renderPuntos();
-    goTo(0);
+async function generarWord(){
+  const datos=recopilarDatos();
+  document.getElementById('word-status').style.display='block';
+  document.getElementById('word-ready').style.display='none';
+  document.getElementById('word-error').style.display='none';
+  document.getElementById('btn-word').disabled=true;
+  document.getElementById('word-status-txt').textContent='Generando el documento Word...';
+  const prompt=construirPrompt(datos);
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Eres un generador de código Node.js para documentos Word (.docx) usando la librería docx-js. El usuario te proporcionará datos estructurados de un acta de comunidad de propietarios. Debes devolver ÚNICAMENTE el código JavaScript (Node.js) completo y funcional, sin explicaciones, sin bloques de código markdown, sin texto adicional. El código debe: 1. Usar require('docx') con las clases necesarias 2. Generar un documento Word profesional con el formato de un acta notarial española 3. Usar fuente Arial, tamaño 11pt para el cuerpo 4. El título centrado en negrita tamaño 14pt con la fuente Lora si no está disponible Arial 5. Encabezados de sección en negrita subrayados 6. Tabla de asistentes con cabecera gris claro (ShadingType.CLEAR, fill D0D0D0) 7. Puntos del orden del día numerados 8. Lista de deficiencias/acuerdos con viñetas usando LevelFormat.BULLET 9. Bloque de firmas al final con dos columnas (tabla sin bordes) 10. Puntos marcados como pendientes deben aparecer en cursiva con texto [PENDIENTE DE COMPLETAR] 11. Márgenes A4: top/right/bottom/left 1134 DXA 12. Guardar en /tmp/acta_generada.docx 13. NUNCA usar unicode bullets directamente, siempre numbering config 14. SIEMPRE usar ShadingType.CLEAR para sombreados de tabla`,messages:[{role:'user',content:prompt}]})});
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error.message||'Error de API');
+    const code=data.content.map(b=>b.text||'').join('').replace(/```javascript|```js|```/g,'').trim();
+    document.getElementById('word-status-txt').textContent='Compilando y descargando...';
+    const execResp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Eres un asistente que ejecuta código Node.js en un servidor. Cuando recibas código Node.js, devuelve SOLO el base64 del archivo .docx generado, nada más. Si hay error, devuelve solo: ERROR: <descripción>`,messages:[{role:'user',content:`Ejecuta este código Node.js y devuélveme el contenido base64 del archivo /tmp/acta_generada.docx:\n\n${code}`}]})});
+    const execData=await execResp.json();
+    const execResult=execData.content.map(b=>b.text||'').join('').trim();
+    if(execResult.startsWith('ERROR:'))throw new Error(execResult);
+    if(/^[A-Za-z0-9+/=]+$/.test(execResult.replace(/\s/g,''))){window._docxBase64=execResult.replace(/\s/g,'');document.getElementById('word-status').style.display='none';document.getElementById('word-ready').style.display='block';}
+    else throw new Error('No se pudo generar el binario directamente.');
+  }catch(e){
+    document.getElementById('word-status').style.display='none';
+    document.getElementById('word-error').style.display='block';
+    document.getElementById('word-error-txt').innerHTML=`<strong>No se pudo generar el .docx automáticamente.</strong><br><br><strong>Alternativa:</strong> Pulsa <em>"Copiar texto plano"</em> abajo y pégalo en este chat de Claude con el mensaje: <em>"genera el acta en Word con este contenido"</em>.`;
   }
+  document.getElementById('btn-word').disabled=false;
 }
+
+function descargarDocx(){if(!window._docxBase64)return;const nom=(window._previewNom||'acta').replace(/\s+/g,'_');const fecha=(window._previewFecha||'').replace(/-/g,'');const bin=atob(window._docxBase64);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);const blob=new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Acta_${nom}_${fecha}.docx`;a.click();}
+
+function recopilarDatos(){return{nombre:document.getElementById('nombre_com').value||'[COMUNIDAD]',cif:document.getElementById('cif').value||'',tipo:document.getElementById('tipo_junta').value,fecha:document.getElementById('fecha').value,lugar:document.getElementById('lugar').value||'el portal del edificio',hora1:document.getElementById('hora1').value||'',hora2:document.getElementById('hora2').value||'',horaFin:document.getElementById('hora_fin').value||'',convocatoria:document.getElementById('convocatoria').value,secretaria:document.getElementById('secretaria').value||'',presidente:document.getElementById('presidente').value||'',asistentes:asistentes.filter(a=>a.nombre),puntos:puntos.map((titulo,i)=>({titulo,debate:(puntosContenido[i]||{}).debate||'',acuerdo:(puntosContenido[i]||{}).acuerdo||'',unanimidad:!!(puntosContenido[i]||{}).unanimidad,pendiente:!!(puntosContenido[i]||{}).pendiente}))};}
+
+function construirPrompt(d){const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];const fmtF=s=>{if(!s)return'___';const[y,m,dd]=s.split('-');return`${parseInt(dd)} de ${M[parseInt(m)-1]} de ${y}`;};const fmtH=s=>s||'__:__';const asistStr=d.asistentes.map((a,i)=>{let s=`${String(i+1).padStart(2,'0')}. ${a.nombre}`;if(a.vivienda)s+=` — ${a.vivienda}`;if(a.representadoPor)s+=` (representado/a por ${a.representadoPor})`;return s;}).join('\n');const puntosStr=d.puntos.map((p,i)=>{let s=`PUNTO ${i+1}: ${p.titulo}\n`;if(p.debate)s+=`Debate/información: ${p.debate}\n`;if(p.pendiente)s+=`Estado: PENDIENTE DE COMPLETAR\n`;else if(p.acuerdo)s+=`Acuerdo: ${p.acuerdo}${p.unanimidad?' (aprobado por unanimidad)':''}\n`;return s;}).join('\n');const convTxt=d.convocatoria==='segunda'?`siendo las ${fmtH(d.hora1)} horas en primera convocatoria y las ${fmtH(d.hora2)} horas en segunda convocatoria`:`siendo las ${fmtH(d.hora1)} horas en primera convocatoria`;return`Genera el código Node.js completo para crear un acta de comunidad de propietarios en formato Word (.docx) con los siguientes datos:\n\nCOMUNIDAD: ${d.nombre}\nCIF: ${d.cif}\nTIPO DE JUNTA: ${d.tipo}\nFECHA: ${fmtF(d.fecha)}\nCONVOCATORIA: ${convTxt}\nLUGAR: ${d.lugar}\nHORA DE FINALIZACIÓN: ${fmtH(d.horaFin)}\nSECRETARIA-ADMINISTRADORA: ${d.secretaria||'[SECRETARIA-ADMINISTRADORA]'}\nPRESIDENTE/A: ${d.presidente||'[PRESIDENTE/A]'}\n\nASISTENTES (${d.asistentes.length} total):\n${asistStr||'(ninguno registrado)'}\n\nORDEN DEL DÍA Y PUNTOS TRATADOS:\n${puntosStr}\n\nTEXTO DE CIERRE: "Y sin más asuntos que tratar, la Sra. Administradora levantó la sesión a las ${fmtH(d.horaFin)} horas del día al principio indicado, de todo lo cual, yo como Secretaria-Administradora doy fe."\n\nEl documento debe guardarse en /tmp/acta_generada.docx`;}
+
+// ── AUTOGUARDADO EN CAMPOS ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  ['nombre_com','cif','lugar','secretaria','presidente','fecha','hora1','hora2','hora_fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',autoGuardar);});
+  ['tipo_junta','convocatoria'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',autoGuardar);});
+});
 
 // INIT
-document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-renderAsistentes();
-renderPuntos();
+showLoading('Conectando...');
 </script>
 </body>
 </html>
