@@ -10,6 +10,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -627,34 +629,169 @@ function renderPreview(){
 function copiarTexto(){navigator.clipboard.writeText(window._previewTxt||'').then(()=>{const ok=document.getElementById('copy-ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',2500);});}
 
 async function generarWord(){
-  const datos=recopilarDatos();
   document.getElementById('word-status').style.display='block';
   document.getElementById('word-ready').style.display='none';
   document.getElementById('word-error').style.display='none';
   document.getElementById('btn-word').disabled=true;
   document.getElementById('word-status-txt').textContent='Generando el documento Word...';
-  const prompt=construirPrompt(datos);
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Eres un generador de código Node.js para documentos Word (.docx) usando la librería docx-js. El usuario te proporcionará datos estructurados de un acta de comunidad de propietarios. Debes devolver ÚNICAMENTE el código JavaScript (Node.js) completo y funcional, sin explicaciones, sin bloques de código markdown, sin texto adicional. El código debe: 1. Usar require('docx') con las clases necesarias 2. Generar un documento Word profesional con el formato de un acta notarial española 3. Usar fuente Arial, tamaño 11pt para el cuerpo 4. El título centrado en negrita tamaño 14pt con la fuente Lora si no está disponible Arial 5. Encabezados de sección en negrita subrayados 6. Tabla de asistentes con cabecera gris claro (ShadingType.CLEAR, fill D0D0D0) 7. Puntos del orden del día numerados 8. Lista de deficiencias/acuerdos con viñetas usando LevelFormat.BULLET 9. Bloque de firmas al final con dos columnas (tabla sin bordes) 10. Puntos marcados como pendientes deben aparecer en cursiva con texto [PENDIENTE DE COMPLETAR] 11. Márgenes A4: top/right/bottom/left 1134 DXA 12. Guardar en /tmp/acta_generada.docx 13. NUNCA usar unicode bullets directamente, siempre numbering config 14. SIEMPRE usar ShadingType.CLEAR para sombreados de tabla`,messages:[{role:'user',content:prompt}]})});
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error.message||'Error de API');
-    const code=data.content.map(b=>b.text||'').join('').replace(/```javascript|```js|```/g,'').trim();
-    document.getElementById('word-status-txt').textContent='Compilando y descargando...';
-    const execResp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Eres un asistente que ejecuta código Node.js en un servidor. Cuando recibas código Node.js, devuelve SOLO el base64 del archivo .docx generado, nada más. Si hay error, devuelve solo: ERROR: <descripción>`,messages:[{role:'user',content:`Ejecuta este código Node.js y devuélveme el contenido base64 del archivo /tmp/acta_generada.docx:\n\n${code}`}]})});
-    const execData=await execResp.json();
-    const execResult=execData.content.map(b=>b.text||'').join('').trim();
-    if(execResult.startsWith('ERROR:'))throw new Error(execResult);
-    if(/^[A-Za-z0-9+/=]+$/.test(execResult.replace(/\s/g,''))){window._docxBase64=execResult.replace(/\s/g,'');document.getElementById('word-status').style.display='none';document.getElementById('word-ready').style.display='block';}
-    else throw new Error('No se pudo generar el binario directamente.');
-  }catch(e){
+  try {
+    const d = recopilarDatos();
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+            AlignmentType, HeadingLevel, BorderStyle, WidthType, ShadingType,
+            UnderlineType, PageOrientation, convertInchesToTwip } = docx;
+
+    const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const fmtF = s => { if(!s) return '___'; const[y,m,dd]=s.split('-'); return `${parseInt(dd)} de ${M[parseInt(m)-1]} de ${y}`; };
+    const fmtH = s => s||'__:__';
+
+    const FONT = 'Arial';
+    const sz = 22; // 11pt en half-points
+    const szSm = 20; // 10pt
+    const szTit = 28; // 14pt
+
+    const noBorder = { top:{style:BorderStyle.NONE,size:0}, bottom:{style:BorderStyle.NONE,size:0}, left:{style:BorderStyle.NONE,size:0}, right:{style:BorderStyle.NONE,size:0}, insideH:{style:BorderStyle.NONE,size:0}, insideV:{style:BorderStyle.NONE,size:0} };
+
+    const par = (text, opts={}) => new Paragraph({
+      children: [new TextRun({ text, font: FONT, size: opts.size||sz, bold: opts.bold||false, italics: opts.italic||false, underline: opts.underline ? {type:UnderlineType.SINGLE} : undefined, color: opts.color||undefined })],
+      alignment: opts.align || AlignmentType.JUSTIFIED,
+      spacing: { before: opts.before||0, after: opts.after||160 },
+    });
+
+    const parMulti = (runs, opts={}) => new Paragraph({
+      children: runs,
+      alignment: opts.align || AlignmentType.JUSTIFIED,
+      spacing: { before: opts.before||0, after: opts.after||160 },
+    });
+
+    const sep = () => par('─'.repeat(60), { align: AlignmentType.CENTER, before: 120, after: 120 });
+    const espacio = () => par('');
+
+    const convTxt = d.convocatoria==='segunda'
+      ? `siendo las ${fmtH(d.hora1)} horas en primera convocatoria y las ${fmtH(d.hora2)} horas en segunda convocatoria`
+      : `siendo las ${fmtH(d.hora1)} horas en primera convocatoria`;
+
+    const children = [];
+
+    // ── TÍTULO
+    children.push(new Paragraph({ children:[new TextRun({text:`ACTA DE LA ${(d.tipo||'').toUpperCase()}`, font:FONT, size:szTit, bold:true})], alignment:AlignmentType.CENTER, spacing:{after:80} }));
+    children.push(new Paragraph({ children:[new TextRun({text:'DE LA COMUNIDAD DE PROPIETARIOS', font:FONT, size:szTit, bold:true})], alignment:AlignmentType.CENTER, spacing:{after:80} }));
+    children.push(new Paragraph({ children:[new TextRun({text:`"${(d.nombre||'').toUpperCase()}"`, font:FONT, size:szTit, bold:true})], alignment:AlignmentType.CENTER, spacing:{after:80} }));
+    if(d.cif) children.push(new Paragraph({ children:[new TextRun({text:`CIF: ${d.cif}`, font:FONT, size:sz})], alignment:AlignmentType.CENTER, spacing:{after:200} }));
+    children.push(sep());
+
+    // ── APERTURA
+    children.push(parMulti([
+      new TextRun({text:'En Melilla, ', font:FONT, size:sz}),
+      new TextRun({text:convTxt, font:FONT, size:sz}),
+      new TextRun({text:`, del día ${fmtF(d.fecha)}, en ${d.lugar||'el portal del edificio'}, debidamente convocados, se reúnen en ${d.convocatoria} convocatoria los copropietarios que se relacionan, actuando como Secretaria-Administradora `, font:FONT, size:sz}),
+      new TextRun({text:d.secretaria||'[SECRETARIA-ADMINISTRADORA]', font:FONT, size:sz, bold:true}),
+      new TextRun({text:' y como Presidente/a ', font:FONT, size:sz}),
+      new TextRun({text:d.presidente||'[PRESIDENTE/A]', font:FONT, size:sz, bold:true}),
+      new TextRun({text:'.', font:FONT, size:sz}),
+    ], {after:200}));
+
+    // ── ORDEN DEL DÍA
+    children.push(par('ORDEN DEL DÍA:', {bold:true, underline:true, before:160, after:120}));
+    d.puntos.forEach((p,i) => children.push(par(`${i+1}. ${p.titulo}`, {before:40, after:60})));
+    children.push(espacio());
+    children.push(sep());
+
+    // ── ASISTENTES
+    children.push(par('ASISTENTES:', {bold:true, underline:true, before:160, after:120}));
+    const asistFiltrados = d.asistentes.filter(a=>a.nombre);
+    if(asistFiltrados.length){
+      const tablaAsist = new Table({
+        width:{size:100, type:WidthType.PERCENTAGE},
+        borders: { top:{style:BorderStyle.SINGLE,size:1,color:'CCCCCC'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'CCCCCC'}, left:{style:BorderStyle.SINGLE,size:1,color:'CCCCCC'}, right:{style:BorderStyle.SINGLE,size:1,color:'CCCCCC'}, insideH:{style:BorderStyle.SINGLE,size:1,color:'CCCCCC'}, insideV:{style:BorderStyle.SINGLE,size:1,color:'CCCCCC'} },
+        rows: [
+          new TableRow({ children:[
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:'Nº',font:FONT,size:szSm,bold:true})],spacing:{before:60,after:60}})], shading:{type:ShadingType.CLEAR,fill:'D0D0D0'}, width:{size:8,type:WidthType.PERCENTAGE} }),
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:'Nombre completo',font:FONT,size:szSm,bold:true})],spacing:{before:60,after:60}})], shading:{type:ShadingType.CLEAR,fill:'D0D0D0'}, width:{size:42,type:WidthType.PERCENTAGE} }),
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:'Vivienda',font:FONT,size:szSm,bold:true})],spacing:{before:60,after:60}})], shading:{type:ShadingType.CLEAR,fill:'D0D0D0'}, width:{size:20,type:WidthType.PERCENTAGE} }),
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:'Representado por',font:FONT,size:szSm,bold:true})],spacing:{before:60,after:60}})], shading:{type:ShadingType.CLEAR,fill:'D0D0D0'}, width:{size:30,type:WidthType.PERCENTAGE} }),
+          ]}),
+          ...asistFiltrados.map((a,i) => new TableRow({ children:[
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:String(i+1),font:FONT,size:szSm})],spacing:{before:60,after:60}})]}),
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:a.nombre||'',font:FONT,size:szSm})],spacing:{before:60,after:60}})]}),
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:a.vivienda||'',font:FONT,size:szSm})],spacing:{before:60,after:60}})]}),
+            new TableCell({ children:[new Paragraph({children:[new TextRun({text:a.representadoPor||'',font:FONT,size:szSm})],spacing:{before:60,after:60}})]}),
+          ]}))
+        ]
+      });
+      children.push(tablaAsist);
+    }
+    children.push(par(`TOTAL: ${asistFiltrados.length} asistente(s)`, {before:120, after:120}));
+    children.push(sep());
+
+    // ── APERTURA SESIÓN
+    children.push(par('Abierta la sesión por la Sra. Administradora, se pasa a tratar los diferentes puntos del Orden del Día.', {before:160, after:200}));
+    children.push(sep());
+
+    // ── PUNTOS TRATADOS
+    d.puntos.forEach((p,i) => {
+      children.push(par(`${i+1}. ${p.titulo.toUpperCase()}`, {bold:true, underline:true, before:200, after:120}));
+      if(p.debate) children.push(par(p.debate, {after:120}));
+      if(p.pendiente){
+        children.push(new Paragraph({ children:[new TextRun({text:'[PENDIENTE DE COMPLETAR]', font:FONT, size:sz, italics:true, color:'7A4A10'})], spacing:{after:120} }));
+      } else if(p.acuerdo){
+        children.push(par('ACUERDO:', {bold:true, after:60}));
+        children.push(par(p.acuerdo, {after:80}));
+        if(p.unanimidad) children.push(par('Aprobado por unanimidad.', {italic:true, after:80}));
+      }
+      children.push(sep());
+    });
+
+    // ── CIERRE
+    children.push(parMulti([
+      new TextRun({text:'Y sin más asuntos que tratar, la Sra. Administradora levantó la sesión a las ', font:FONT, size:sz}),
+      new TextRun({text:fmtH(d.horaFin), font:FONT, size:sz, bold:true}),
+      new TextRun({text:' horas del día al principio indicado, de todo lo cual, yo como Secretaria-Administradora doy fe.', font:FONT, size:sz}),
+    ], {before:160, after:400}));
+
+    // ── FIRMAS
+    const tablaFirmas = new Table({
+      width:{size:100, type:WidthType.PERCENTAGE},
+      borders: noBorder,
+      rows:[new TableRow({children:[
+        new TableCell({ borders:noBorder, children:[
+          new Paragraph({children:[new TextRun({text:'Vº Bº EL/LA PRESIDENTE/A', font:FONT, size:sz, bold:true})], alignment:AlignmentType.CENTER, spacing:{after:800}}),
+          new Paragraph({children:[new TextRun({text:'_______________________________', font:FONT, size:sz})], alignment:AlignmentType.CENTER, spacing:{after:80}}),
+          new Paragraph({children:[new TextRun({text:d.presidente||'[PRESIDENTE/A]', font:FONT, size:sz})], alignment:AlignmentType.CENTER}),
+        ]}),
+        new TableCell({ borders:noBorder, children:[
+          new Paragraph({children:[new TextRun({text:'LA SECRETARIA-ADMINISTRADORA', font:FONT, size:sz, bold:true})], alignment:AlignmentType.CENTER, spacing:{after:800}}),
+          new Paragraph({children:[new TextRun({text:'_______________________________', font:FONT, size:sz})], alignment:AlignmentType.CENTER, spacing:{after:80}}),
+          new Paragraph({children:[new TextRun({text:d.secretaria||'[SECRETARIA-ADMINISTRADORA]', font:FONT, size:sz})], alignment:AlignmentType.CENTER}),
+        ]}),
+      ]})]
+    });
+    children.push(tablaFirmas);
+
+    // ── GENERAR DOCUMENTO
+    const doc = new Document({
+      sections:[{
+        properties:{ page:{ margin:{ top:convertInchesToTwip(1), right:convertInchesToTwip(1), bottom:convertInchesToTwip(1), left:convertInchesToTwip(1) } } },
+        children
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const nom = (d.nombre||'acta').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_áéíóúÁÉÍÓÚñÑ]/g,'');
+    const fecha = (d.fecha||'').replace(/-/g,'');
+    saveAs(blob, `Acta_${nom}_${fecha}.docx`);
+
+    document.getElementById('word-status').style.display='none';
+    document.getElementById('word-ready').style.display='block';
+  } catch(e) {
+    console.error(e);
     document.getElementById('word-status').style.display='none';
     document.getElementById('word-error').style.display='block';
-    document.getElementById('word-error-txt').innerHTML=`<strong>No se pudo generar el .docx automáticamente.</strong><br><br><strong>Alternativa:</strong> Pulsa <em>"Copiar texto plano"</em> abajo y pégalo en este chat de Claude con el mensaje: <em>"genera el acta en Word con este contenido"</em>.`;
+    document.getElementById('word-error-txt').innerHTML=`<strong>Error al generar el documento:</strong> ${e.message||e}<br><br>Puedes usar <em>"Copiar texto plano"</em> como alternativa.`;
   }
   document.getElementById('btn-word').disabled=false;
 }
 
-function descargarDocx(){if(!window._docxBase64)return;const nom=(window._previewNom||'acta').replace(/\s+/g,'_');const fecha=(window._previewFecha||'').replace(/-/g,'');const bin=atob(window._docxBase64);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);const blob=new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Acta_${nom}_${fecha}.docx`;a.click();}
+function descargarDocx(){ /* La descarga ya se hace automáticamente en generarWord */ }
 
 function recopilarDatos(){return{nombre:document.getElementById('nombre_com').value||'[COMUNIDAD]',cif:document.getElementById('cif').value||'',tipo:document.getElementById('tipo_junta').value,fecha:document.getElementById('fecha').value,lugar:document.getElementById('lugar').value||'el portal del edificio',hora1:document.getElementById('hora1').value||'',hora2:document.getElementById('hora2').value||'',horaFin:document.getElementById('hora_fin').value||'',convocatoria:document.getElementById('convocatoria').value,secretaria:document.getElementById('secretaria').value||'',presidente:document.getElementById('presidente').value||'',asistentes:asistentes.filter(a=>a.nombre),puntos:puntos.map((titulo,i)=>({titulo,debate:(puntosContenido[i]||{}).debate||'',acuerdo:(puntosContenido[i]||{}).acuerdo||'',unanimidad:!!(puntosContenido[i]||{}).unanimidad,pendiente:!!(puntosContenido[i]||{}).pendiente}))};}
 
